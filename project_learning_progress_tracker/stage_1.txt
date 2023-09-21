@@ -1,0 +1,7 @@
+Objectives
+
+In this stage, your program should:
+    Demonstrate that it is running by printing its title: Learning Progress Tracker.
+    Wait for the commands. In this stage, the only command the program should recognize is `exit`. Once a user enters it, the program should print Bye! and quit.
+    Detect if a user has entered a blank line and print No input in response.
+    Print Unknown command! if a user enters an unknown command.
