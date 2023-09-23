@@ -15,15 +15,15 @@ def is_student_name_correct(student_name):
     if values is None:
         return False
     # print(values)
-    if re.match(r"[a-zA-Z'-]{2,}", values[0], flags=re.ASCII) is None:
+    # if re.match(r"[a-zA-Z'-]{2,}", values[0], flags=re.ASCII) is None:
+    if re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][A-z'-]{1,}(?<![-'])$", values[0], flags=re.ASCII) is None:
         return "Incorrect first name."
-    elif re.match(r"[a-zA-Z'-]{2,}", values[1], flags=re.ASCII) is None:
+    elif re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][ A-z'-]{1,}(?<![-'])$", values[1], flags=re.ASCII) is None:
         return "Incorrect last name."
-    elif not re.match(r"[a-z._-]+@[a-z]+\.[a-z]+", values[2], flags=re.ASCII):
+    elif not re.match(r"[0-9a-z._-]+@[a-z0-9]+\.[a-z0-9]+", values[2], flags=re.ASCII):
         return "Incorrect email."
     else:
-        print(re.match(r"[a-zA-Z'-]{2,}", values[0], flags=re.ASCII))
-        return True
+        return None
 
 print("Learning progress tracker")
 
@@ -47,10 +47,12 @@ while True:
                 break
             else:
                 output = is_student_name_correct(student_name)
-                if output:
+                if output is None:
                     students.append(student_name)
                     number_students_added += 1
                     print("The student has been added.")
+                elif output:
+                    print(output)
                 else:
                     print("Incorrect credentials.")
         print(f"Total {number_students_added} students have been added.")
