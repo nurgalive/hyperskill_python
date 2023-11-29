@@ -1,21 +1,19 @@
-from stage_3 import Student, print_students_list, is_student_name_correct, Course, add_points
+from stage_3 import (
+    Student, 
+    print_students_list, 
+    is_student_name_correct, 
+    Course, 
+    add_points,
+    is_id_exists
+    ) 
 
 
 for student in ["Joe Does ato@pro.net"]:
     output = is_student_name_correct(student)
-    print(output)
+    print("Output", output)
     if output is None:
         Student(student)
 
-print_students_list()
+print(is_id_exists("10000"))
 
-added, message = add_points("10000 1 2 3 4 5")
-if added:
-    print("All added")
-else:
-    print(message)
-
-print(Course.all_courses)
-
-# print([student.id for student in Student.all_students])
-
+# print("10000" == "10000")

@@ -1,6 +1,7 @@
 import re
 import sys
 
+# parses the input string into correct fname, lname, email
 def get_correct_student_values(values) -> tuple | None:
     values = values.split()
     if len(values) == 3:
@@ -10,6 +11,7 @@ def get_correct_student_values(values) -> tuple | None:
     else:
         return None
 
+# checks if the student fname, lname and email are correct
 def is_student_name_correct(student_name) -> str | bool | None:
     values = get_correct_student_values(student_name)
     if values is None:
@@ -24,7 +26,8 @@ def is_student_name_correct(student_name) -> str | bool | None:
         if is_email_taken(values[2]):
             return "This email is already taken."
         return None
-    
+
+# function for the command "list"
 def print_students_list():
     if len(Student.all_students) > 0:
         print("Students:")
@@ -38,10 +41,11 @@ def is_email_taken(email: str) -> bool:
             return True
     return False
 
-def is_id_exists(student_id) -> bool:
-    for student in Student.all_students:
-        if student_id == student.id:
-            return True
+def is_id_exists(student_id: str) -> bool:
+    if len(Student.all_students) > 0:
+        for student in Student.all_students:
+            if student_id == student.id:
+                return True
     return False
 
 def add_points(values: str) -> tuple[bool, str]:
@@ -49,22 +53,30 @@ def add_points(values: str) -> tuple[bool, str]:
     if len(values) != 5: 
         return False, "Incorrect points format"
     for value in values:
-        if int(value) < 0:
+        try:
+            if int(value) < 0:
+                return False, "Incorrect points format"
+        except ValueError:
             return False, "Incorrect points format"
-    
     if not is_id_exists(values[0]):
         return False, f"No student is found for id={values[0]}"
         
     course = Course.all_courses.get(values[0])
-    print(course)
+    # print(course)
     if course:
         course.add_points(values[1], values[2], values[3], values[4])
     else:
         Course(values[0] ,values[1], values[2], values[3], values[4])
 
-    return True, "Points updated"
+    return True, "Points updated."
 
-
+def find(student_id: str) -> str:
+    student_courses = Course.all_courses.get(student_id)
+    if student_courses is None:
+        return(f"No student is found for id={student_id}")
+    else:
+        return(f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
+    
 
 class Student:
     all_students = []
@@ -78,13 +90,13 @@ class Student:
         Student.all_students.append(self)
 
     def generate_student_id(self) -> int:
-        return len(self.all_students) + self.starting_student_id
+        return str(len(self.all_students) + self.starting_student_id)
     
     def __str__(self) -> str:
-        print(f"Class Student: Student ID: {self.id}, first name: {self.first_name}")
+        return f"Class Student: Student ID: {self.id}, first name: {self.first_name}"
     
     def __repr__(self) -> str:
-        print(f"Student ID: {self.id}, first name: {self.first_name}")
+        return f"Student ID: {self.id}, first name: {self.first_name}"
     
 class Course:
     all_courses = {}
@@ -96,26 +108,26 @@ class Course:
 
     def __init__(self, student_id, python, dsa, databases, flask):
         self.student_id = student_id
-        self.python = python
-        self.dsa = dsa
-        self.databases = databases
-        self.flask = flask
+        self.python = int(python) 
+        self.dsa = int(dsa)
+        self.databases = int(databases)
+        self.flask = int(flask)
         self.all_courses[student_id] = self
 
     def add_points(self, python, dsa, databases, flask):
-        self.python += python
-        self.dsa += dsa
-        self.databases += databases
-        self.flask += flask
+        self.python += int(python)
+        self.dsa += int(dsa)
+        self.databases += int(databases)
+        self.flask += int(flask)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Course for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Course for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     print("Learning progress tracker")
 
     while True:
@@ -152,11 +164,18 @@ if __name__ == "main":
         elif input_string == "add points":
             print("Enter an id and points or 'back' to return")
             while True:
-                input_strin = input()
+                input_string = input()
                 if input_string == "back": break
-
-
+                else:
+                    added, message = add_points(input_string)
+                    print(message)
         elif input_string == "find":
-            print("FIND is not implemented")
+            print("Enter an id or 'back' to return")
+            while True:
+                input_string = input()
+                if input_string == "back": break
+                else:
+                    message = find(input_string)
+                    print(message)
         else:
             print("Error: unknown command!")
