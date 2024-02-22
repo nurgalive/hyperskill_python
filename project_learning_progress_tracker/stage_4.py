@@ -1,6 +1,12 @@
 import re
 import sys
 
+python_points = 600 
+dsa_points = 400
+databases_points = 480
+flask_points = 550
+
+courses = ["Python", "DSA", "Databases", "Flask"]
 
 # parses the input string into correct fname, lname, email
 def get_correct_student_values(values) -> tuple | None:
@@ -87,6 +93,9 @@ def find(student_id: str) -> str:
         return (
             f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
 
+
+def most_popular_course() -> str:
+    return "n/a"
 
 class Student:
     all_students = []
@@ -191,5 +200,21 @@ if __name__ == "__main__":
                 else:
                     message = find(input_string)
                     print(message)
+        elif input_string == "statistics":
+            print("Type the name of a course to see details or 'back' to quit:")
+            print("Most popular: n/a")
+            print("Least popular: n/a")
+            print("Lowest activity: n/a")
+            print("Easiest course: n/a")
+            print("Hardest course: n/a")
+
+            while True:
+                input_string = input()
+                if input_string in courses:
+                    print("id	points	completed")
+                elif input_string == "back":
+                    break
+                else:
+                    print("Unknown course.")
         else:
             print("Error: unknown command!")
