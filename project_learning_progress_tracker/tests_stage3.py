@@ -37,12 +37,12 @@ class TestAddPoints(unittest.TestCase):
         #print(added, message)
         #print(Course.all_courses)
         self.assertEqual(added, True)
-        self.assertEqual(message, "Points updated")
+        self.assertEqual(message, "Points updated.")
         
         # adding points to the existing student course
         points = "10000 4 3 2 1"
         added, message = add_points(points)
-        self.assertEqual(message, "Points updated")
+        self.assertEqual(message, "Points updated.")
         self.assertEqual(added, True)
         #print(Course.all_courses)
     
@@ -63,7 +63,7 @@ class TestAddPoints(unittest.TestCase):
         add_points("10000 1 2 3 4")
         res = find("10000")
         # print(res)
-        self.assertEqual(res, "id points: Python=1; DSA=2; Databases=3; Flask=4")
+        self.assertEqual(res, "10000 points: Python=1; DSA=2; Databases=3; Flask=4")
 
 
 
