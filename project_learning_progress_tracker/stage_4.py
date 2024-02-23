@@ -6,7 +6,7 @@ dsa_points = 400
 databases_points = 480
 flask_points = 550
 
-courses = ["Python", "DSA", "Databases", "Flask"]
+courses = {"python":"Python", "dsa":"DSA", "databases":"Databases", "flask":"Flask"}
 
 # parses the input string into correct fname, lname, email
 def get_correct_student_values(values) -> tuple | None:
@@ -93,9 +93,34 @@ def find(student_id: str) -> str:
         return (
             f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
 
+course_vars = ["python", "dsa", "databases", "flask"]
 
-def most_popular_course() -> str:
-    return "n/a"
+# Find out which courses are the most and least popular ones. 
+# The most popular has the biggest number of enrolled students;
+# how to rewrite it using map and filter?
+def get_most_popular_courses() -> str:
+    if len(Course.all_courses) == 0:
+        return "n/a"
+    highest_popularity = 0
+    course_popularity = {
+        "python": 0,
+        "dsa": 0,
+        "databases": 0,
+        "flask": 0}
+    for student_id, course in Course.all_courses.items():
+        # print(student_id)
+        for var in course_vars:
+            result = getattr(course, var)
+            if result > 0:
+                course_popularity[var] += 1
+                highest_popularity = course_popularity[var]
+            # print(result)
+
+    print(course_popularity)
+
+    most_popular_courses = list(filter(lambda x: course_popularity[x] == highest_popularity, course_popularity))
+    most_popular_courses = ", ".join(map(lambda x: courses[x], most_popular_courses))
+    return most_popular_courses
 
 class Student:
     all_students = []
@@ -120,6 +145,8 @@ class Student:
 
 
 class Course:
+    # dict stores student courses in the next structure:
+    # student_id: Course(student_id, python, sda, databases, flask)
     all_courses = {}
 
     python = 0
@@ -202,8 +229,9 @@ if __name__ == "__main__":
                     print(message)
         elif input_string == "statistics":
             print("Type the name of a course to see details or 'back' to quit:")
-            print("Most popular: n/a")
+            print(f"Most popular: {get_most_popular_courses()}")
             print("Least popular: n/a")
+            print("Highest activity: n/a") 
             print("Lowest activity: n/a")
             print("Easiest course: n/a")
             print("Hardest course: n/a")
