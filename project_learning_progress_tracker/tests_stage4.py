@@ -2,9 +2,10 @@ import unittest
 
 from stage_4 import (
     Student,
-    Course,
+    Submission,
     get_most_popular_courses,
-    add_points
+    add_points,
+    get_course_top_learners
 )
 
 class TestStatisticsCommandWithoutData(unittest.TestCase):
@@ -12,6 +13,12 @@ class TestStatisticsCommandWithoutData(unittest.TestCase):
     def testStatisticsCommand(self):
         output = get_most_popular_courses()
         self.assertEqual(output, "n/a")
+
+    def test_most_popular_course(self):
+        res = get_course_top_learners("Python")
+        # print(res)
+        self.assertEqual("id\tpoints\tcompleted", res)
+
 
 class TestStatisticsCommandWithData(unittest.TestCase):
     def setUp(self) -> None:
@@ -25,12 +32,17 @@ class TestStatisticsCommandWithData(unittest.TestCase):
     
     def tearDown(self) -> None:
         Student.all_students.clear()
-        Course.all_courses.clear()
+        Submission.all_submissions.clear()
 
     def test_most_popular_course(self):
         output = get_most_popular_courses()
         # print(output)
         self.assertEqual("DSA, Databases", output)
+    
+    def test_top_learners(self):
+        res = get_course_top_learners("Python")
+        # print(res)
+        self.assertEqual("id\tpoints\tcompleted\n10000\t1\t0.2%", res)
 
 if __name__ == '__main__':
     unittest.main()

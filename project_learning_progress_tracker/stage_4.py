@@ -1,12 +1,10 @@
 import re
 import sys
 
-python_points = 600 
-dsa_points = 400
-databases_points = 480
-flask_points = 550
+course_points = {"python": 600, "dsa": 400, "databases": 480, "flask": 550}
 
-courses = {"python":"Python", "dsa":"DSA", "databases":"Databases", "flask":"Flask"}
+course_vars_to_names = {"python":"Python", "dsa":"DSA", "databases":"Databases", "flask":"Flask"}
+course_names_to_vars = {"Python":"python", "DSA":"dsa", "Databases":"databases", "Flask":"flask"}
 
 # parses the input string into correct fname, lname, email
 def get_correct_student_values(values) -> tuple | None:
@@ -75,18 +73,18 @@ def add_points(values: str) -> tuple[bool, str]:
         except ValueError:
             return False, "Incorrect points format"
 
-    course = Course.all_courses.get(values[0])
+    course = Submission.all_submissions.get(values[0])
     # print(course)
     if course:
         course.add_points(values[1], values[2], values[3], values[4])
     else:
-        Course(values[0], values[1], values[2], values[3], values[4])
+        Submission(values[0], values[1], values[2], values[3], values[4])
 
     return True, "Points updated."
 
 
 def find(student_id: str) -> str:
-    student_courses = Course.all_courses.get(student_id)
+    student_courses = Submission.all_submissions.get(student_id)
     if student_courses is None:
         return (f"No student is found for id={student_id}")
     else:
@@ -95,11 +93,12 @@ def find(student_id: str) -> str:
 
 course_vars = ["python", "dsa", "databases", "flask"]
 
+statistics = {}
+
 # Find out which courses are the most and least popular ones. 
 # The most popular has the biggest number of enrolled students;
-# how to rewrite it using map and filter?
 def get_most_popular_courses() -> str:
-    if len(Course.all_courses) == 0:
+    if len(Submission.all_submissions) == 0:
         return "n/a"
     highest_popularity = 0
     course_popularity = {
@@ -107,20 +106,44 @@ def get_most_popular_courses() -> str:
         "dsa": 0,
         "databases": 0,
         "flask": 0}
-    for student_id, course in Course.all_courses.items():
+    for student_id, submission in Submission.all_submissions.items():
         # print(student_id)
         for var in course_vars:
-            result = getattr(course, var)
+            result = getattr(submission, var)
             if result > 0:
                 course_popularity[var] += 1
                 highest_popularity = course_popularity[var]
             # print(result)
 
-    print(course_popularity)
+    # print(course_popularity)
 
     most_popular_courses = list(filter(lambda x: course_popularity[x] == highest_popularity, course_popularity))
-    most_popular_courses = ", ".join(map(lambda x: courses[x], most_popular_courses))
+    most_popular_courses = ", ".join(map(lambda x: course_vars_to_names[x], most_popular_courses))
     return most_popular_courses
+
+def get_general_course_statistics() -> dict:
+    pass
+
+def get_course_top_learners(course: str) -> str:
+    return_line = "id\tpoints\tcompleted"
+    if len(Submission.all_submissions) == 0:
+        return return_line
+
+    course = course_names_to_vars[course]
+    top_learners = {}
+    for submission in Submission.all_submissions.values():
+        score = getattr(submission, course)
+        if score:
+            # course completion progress as a percentage = 100% * student_score / course_points
+            course_completion = round(100 * score / course_points[course], 1)
+            top_learners[submission.student_id] = [str(score), str(course_completion) + "%"]
+    # print(top_learners)
+    if top_learners: # if not empty, return with points
+        for stud_id, points in top_learners.items():
+            return_line = return_line + "\n" + stud_id + "\t" + "\t".join(points)
+        return return_line
+    else: 
+        return return_line
 
 class Student:
     all_students = []
@@ -144,10 +167,10 @@ class Student:
         return f"Student ID: {self.id}, first name: {self.first_name}"
 
 
-class Course:
+class Submission:
     # dict stores student courses in the next structure:
     # student_id: Course(student_id, python, sda, databases, flask)
-    all_courses = {}
+    all_submissions = {}
 
     python = 0
     dsa = 0
@@ -160,7 +183,7 @@ class Course:
         self.dsa = int(dsa)
         self.databases = int(databases)
         self.flask = int(flask)
-        self.all_courses[student_id] = self
+        self.all_submissions[student_id] = self
 
     def add_points(self, python, dsa, databases, flask):
         self.python += int(python)
@@ -169,10 +192,10 @@ class Course:
         self.flask += int(flask)
 
     def __repr__(self) -> str:
-        return f"Course for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
+        return f"Submissions for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
 
     def __str__(self) -> str:
-        return f"Course for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
+        return f"Submissions for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
 
 
 if __name__ == "__main__":
@@ -228,8 +251,9 @@ if __name__ == "__main__":
                     message = find(input_string)
                     print(message)
         elif input_string == "statistics":
+            statistics = get_general_course_statistics()
             print("Type the name of a course to see details or 'back' to quit:")
-            print(f"Most popular: {get_most_popular_courses()}")
+            # print(f"Most popular: {statistics["Most popular"]}")
             print("Least popular: n/a")
             print("Highest activity: n/a") 
             print("Lowest activity: n/a")
@@ -238,8 +262,8 @@ if __name__ == "__main__":
 
             while True:
                 input_string = input()
-                if input_string in courses:
-                    print("id	points	completed")
+                if input_string in course_names_to_vars:
+                    print(get_course_top_learners(input_string))
                 elif input_string == "back":
                     break
                 else:
