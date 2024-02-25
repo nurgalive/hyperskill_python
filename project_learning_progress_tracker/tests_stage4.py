@@ -7,7 +7,8 @@ from stage_4 import (
     add_points,
     get_course_top_learners,
     get_course_activity,
-    get_general_course_statistics
+    get_general_course_statistics,
+    get_course_complexity
 )
 
 class TestStatisticsCommandWithoutData(unittest.TestCase):
@@ -50,13 +51,23 @@ class TestStatisticsCommandWithData(unittest.TestCase):
         self.assertEqual("DSA, Databases", highest_activity_courses)
         self.assertEqual("Python, Flask", lowest_activity_courses)
     
+    def test_get_course_complexity(self):
+        hardest_courses, easiest_courses = get_course_complexity()
+        # print(hardest_courses)
+        # print(easiest_courses)
+        self.assertEqual("Python", hardest_courses)
+        self.assertEqual("Flask", easiest_courses)
+
     def test_get_general_course_statistics(self):
         result = get_general_course_statistics()
+        # print(result)
         expected_result = {
             'Most popular': 'DSA, Databases', 
             'Least popular': 'Python, Flask', 
             'Highest activity': 'DSA, Databases', 
-            'Lowest activity': 'Python, Flask'}
+            'Lowest activity': 'Python, Flask',
+            'Hardest course': 'Python', 
+            'Easiest course': 'Flask'}
         self.assertEqual(expected_result, result)
     
     def test_top_learners(self):

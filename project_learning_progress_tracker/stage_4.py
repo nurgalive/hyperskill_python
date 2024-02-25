@@ -93,7 +93,7 @@ def find(student_id: str) -> str:
             f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
 
 # get the final string name with the actual course names separated by the comma, where key equals to the most popular course
-def get_statistics_course_line(input: tuple[list, list]) -> str:
+def get_statistics_course_line(input: list) -> str:
     return ", ".join(map(lambda x: course_vars_to_names[x], input))
 
 # Find out which courses are the most and least popular ones. 
@@ -121,6 +121,7 @@ def get_course_popularity() -> tuple[str, str]:
 
     if least_popular_courses == most_popular_courses:
         least_popular_courses = "n/a"
+        return get_statistics_course_line(most_popular_courses), least_popular_courses
 
     return get_statistics_course_line(most_popular_courses), get_statistics_course_line(least_popular_courses)
 
@@ -142,7 +143,20 @@ def get_course_activity() -> tuple[str, str]:
 # Establish the easiest and hardest course. 
 # The easiest course has the highest average grade per assignment;
 def get_course_complexity() -> tuple[str, str]:
-    pass
+    if len(Submission.all_submissions) == 0: return "n/a", "n/a"
+    result = {}
+
+    for course in course_vars:
+         for submission in Submission.all_submissions.values():
+            if getattr(submission, course):
+                result[course] = result.get(course, 0) + getattr(submission, course)
+
+    result = {course: result[course] / Submission.submission_counts[course] for course in result.keys()}
+
+    most_complex_course = list(filter(lambda course: result[course] == min(result.values()), result.keys()))  
+    least_complex_course = list(filter(lambda course: result[course] == max(result.values()), result.keys()))
+
+    return get_statistics_course_line(most_complex_course), get_statistics_course_line(least_complex_course)
 
 def get_general_course_statistics() -> dict:
     statistics = {}
@@ -152,6 +166,9 @@ def get_general_course_statistics() -> dict:
     highest_activity_courses, lowest_activity_courses = get_course_activity()
     statistics["Highest activity"] = highest_activity_courses
     statistics["Lowest activity"] = lowest_activity_courses
+    hardest_courses, easiest_courses = get_course_complexity()
+    statistics['Hardest course'] = hardest_courses
+    statistics['Easiest course'] = easiest_courses
 
     return statistics
 
@@ -306,8 +323,8 @@ if __name__ == "__main__":
             print(f"Least popular: {statistics['Least popular']}")
             print(f"Highest activity: {statistics['Highest activity']}") 
             print(f"Lowest activity: {statistics['Lowest activity']}")
-            print("Easiest course: n/a")
-            print("Hardest course: n/a")
+            print(f"Easiest course: {statistics['Easiest course']}")
+            print(f"Hardest course: {statistics['Hardest course']}")
 
             while True:
                 input_string = input()
