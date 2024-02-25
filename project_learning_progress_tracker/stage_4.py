@@ -93,11 +93,9 @@ def find(student_id: str) -> str:
 
 course_vars = ["python", "dsa", "databases", "flask"]
 
-statistics = {}
-
 # Find out which courses are the most and least popular ones. 
 # The most popular has the biggest number of enrolled students;
-def get_most_popular_courses() -> str:
+def get_most_popular_courses() -> tuple[str, str]:
     if len(Submission.all_submissions) == 0:
         return "n/a"
     highest_popularity = 0
@@ -117,12 +115,34 @@ def get_most_popular_courses() -> str:
 
     # print(course_popularity)
 
+    # filter only courses, which popularity equals to highest_popularity
     most_popular_courses = list(filter(lambda x: course_popularity[x] == highest_popularity, course_popularity))
+    # get the final string name with the actual course names separated by the comma, where key equals to the most popular course
     most_popular_courses = ", ".join(map(lambda x: course_vars_to_names[x], most_popular_courses))
-    return most_popular_courses
+
+    # get the courses, which popularity equals to the min of the all courses
+    least_popular_courses = list(filter(lambda x: course_popularity[x] == min(course_popularity.values()), course_popularity))
+    least_popular_courses = ", ".join(map(lambda x: course_vars_to_names[x], least_popular_courses))
+
+    if least_popular_courses == most_popular_courses:
+        least_popular_courses = "n/a"
+
+    return most_popular_courses, least_popular_courses
+
+# print(f"Most popular: {statistics["Most popular"]}")
+# print("Least popular: n/a")
+# print("Highest activity: n/a") 
+# print("Lowest activity: n/a")
+# print("Easiest course: n/a")
+# print("Hardest course: n/a")
 
 def get_general_course_statistics() -> dict:
-    pass
+    statistics = {}
+    most_popular_courses, least_popular_courses = get_most_popular_courses()
+    statistics["Most popular"] = most_popular_courses
+    statistics["Least popular"] = least_popular_courses
+
+    return statistics
 
 def get_course_top_learners(course: str) -> str:
     return_line = "id\tpoints\tcompleted"
@@ -139,6 +159,8 @@ def get_course_top_learners(course: str) -> str:
             top_learners[submission.student_id] = [str(score), str(course_completion) + "%"]
     # print(top_learners)
     if top_learners: # if not empty, return with points
+        # sorts the top learnears according to the requiements
+        top_learners = dict(sorted(top_learners.items(), key=lambda item: item[1], reverse=True))
         for stud_id, points in top_learners.items():
             return_line = return_line + "\n" + stud_id + "\t" + "\t".join(points)
         return return_line
@@ -253,8 +275,8 @@ if __name__ == "__main__":
         elif input_string == "statistics":
             statistics = get_general_course_statistics()
             print("Type the name of a course to see details or 'back' to quit:")
-            # print(f"Most popular: {statistics["Most popular"]}")
-            print("Least popular: n/a")
+            print(f"Most popular: {statistics['Most popular']}")
+            print(f"Least popular: {statistics['Least popular']}")
             print("Highest activity: n/a") 
             print("Lowest activity: n/a")
             print("Easiest course: n/a")
