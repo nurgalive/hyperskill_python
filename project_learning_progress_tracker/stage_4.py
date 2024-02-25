@@ -5,6 +5,7 @@ course_points = {"python": 600, "dsa": 400, "databases": 480, "flask": 550}
 
 course_vars_to_names = {"python":"Python", "dsa":"DSA", "databases":"Databases", "flask":"Flask"}
 course_names_to_vars = {"Python":"python", "DSA":"dsa", "Databases":"databases", "Flask":"flask"}
+course_vars = ["python", "dsa", "databases", "flask"]
 
 # parses the input string into correct fname, lname, email
 def get_correct_student_values(values) -> tuple | None:
@@ -91,56 +92,66 @@ def find(student_id: str) -> str:
         return (
             f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
 
-course_vars = ["python", "dsa", "databases", "flask"]
+# get the final string name with the actual course names separated by the comma, where key equals to the most popular course
+def get_statistics_course_line(input: tuple[list, list]) -> str:
+    return ", ".join(map(lambda x: course_vars_to_names[x], input))
 
 # Find out which courses are the most and least popular ones. 
 # The most popular has the biggest number of enrolled students;
-def get_most_popular_courses() -> tuple[str, str]:
+def get_course_popularity() -> tuple[str, str]:
     if len(Submission.all_submissions) == 0:
-        return "n/a"
-    highest_popularity = 0
+        return "n/a", "n/a"
     course_popularity = {
         "python": 0,
         "dsa": 0,
         "databases": 0,
         "flask": 0}
-    for student_id, submission in Submission.all_submissions.items():
-        # print(student_id)
+    for submission in Submission.all_submissions.values():
         for var in course_vars:
             result = getattr(submission, var)
             if result > 0:
                 course_popularity[var] += 1
-                highest_popularity = course_popularity[var]
             # print(result)
 
-    # print(course_popularity)
-
     # filter only courses, which popularity equals to highest_popularity
-    most_popular_courses = list(filter(lambda x: course_popularity[x] == highest_popularity, course_popularity))
-    # get the final string name with the actual course names separated by the comma, where key equals to the most popular course
-    most_popular_courses = ", ".join(map(lambda x: course_vars_to_names[x], most_popular_courses))
+    most_popular_courses = list(filter(lambda x: course_popularity[x] == max(course_popularity.values()), course_popularity))
 
     # get the courses, which popularity equals to the min of the all courses
     least_popular_courses = list(filter(lambda x: course_popularity[x] == min(course_popularity.values()), course_popularity))
-    least_popular_courses = ", ".join(map(lambda x: course_vars_to_names[x], least_popular_courses))
 
     if least_popular_courses == most_popular_courses:
         least_popular_courses = "n/a"
 
-    return most_popular_courses, least_popular_courses
+    return get_statistics_course_line(most_popular_courses), get_statistics_course_line(least_popular_courses)
 
-# print(f"Most popular: {statistics["Most popular"]}")
-# print("Least popular: n/a")
-# print("Highest activity: n/a") 
-# print("Lowest activity: n/a")
-# print("Easiest course: n/a")
+# Find out which course has the highest and lowest student activity. 
+# Higher student activity means a bigger number of completed tasks;
+def get_course_activity() -> tuple[str, str]:
+    if len(Submission.submission_counts) == 0: return "n/a", "n/a"
+    max_activity_courses = list(filter(lambda x: Submission.submission_counts[x] == max(
+        Submission.submission_counts.values()),  Submission.submission_counts.keys()))
+    min_activity_courses = list(filter(lambda x: Submission.submission_counts[x] == min(Submission.submission_counts.values()), 
+                                       Submission.submission_counts.keys()))
+
+    return get_statistics_course_line(max_activity_courses), get_statistics_course_line(min_activity_courses)
+
+
+# print("Easiest course: n/a") -> TODO
 # print("Hardest course: n/a")
+
+# Establish the easiest and hardest course. 
+# The easiest course has the highest average grade per assignment;
+def get_course_complexity() -> tuple[str, str]:
+    pass
 
 def get_general_course_statistics() -> dict:
     statistics = {}
-    most_popular_courses, least_popular_courses = get_most_popular_courses()
+    most_popular_courses, least_popular_courses = get_course_popularity()
     statistics["Most popular"] = most_popular_courses
     statistics["Least popular"] = least_popular_courses
+    highest_activity_courses, lowest_activity_courses = get_course_activity()
+    statistics["Highest activity"] = highest_activity_courses
+    statistics["Lowest activity"] = lowest_activity_courses
 
     return statistics
 
@@ -193,25 +204,41 @@ class Submission:
     # dict stores student courses in the next structure:
     # student_id: Course(student_id, python, sda, databases, flask)
     all_submissions = {}
+    submission_counts = {}
 
-    python = 0
-    dsa = 0
-    databases = 0
-    flask = 0
+    # python = 0
+    # dsa = 0
+    # databases = 0
+    # flask = 0
 
-    def __init__(self, student_id, python, dsa, databases, flask):
+    def __init__(self, student_id, python: str, dsa: str, databases: str, flask: str):
         self.student_id = student_id
         self.python = int(python)
+        if int(python): self.submission_counts["python"] = self.submission_counts.get("python", 0) + 1
+
         self.dsa = int(dsa)
+        if int(dsa): self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
+
         self.databases = int(databases)
+        if int(databases): self.submission_counts["databases"] = self.submission_counts.get("databases", 0) + 1
+
         self.flask = int(flask)
+        if int(flask): self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
+
         self.all_submissions[student_id] = self
 
     def add_points(self, python, dsa, databases, flask):
         self.python += int(python)
+        if int(python): self.submission_counts["python"] = self.submission_counts.get("python", 0) + 1
+
         self.dsa += int(dsa)
+        if int(dsa): self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
+
         self.databases += int(databases)
+        if int(databases): self.submission_counts["databases"] = self.submission_counts.get("databases", 0) + 1
+
         self.flask += int(flask)
+        if int(flask): self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
 
     def __repr__(self) -> str:
         return f"Submissions for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
@@ -277,8 +304,8 @@ if __name__ == "__main__":
             print("Type the name of a course to see details or 'back' to quit:")
             print(f"Most popular: {statistics['Most popular']}")
             print(f"Least popular: {statistics['Least popular']}")
-            print("Highest activity: n/a") 
-            print("Lowest activity: n/a")
+            print(f"Highest activity: {statistics['Highest activity']}") 
+            print(f"Lowest activity: {statistics['Lowest activity']}")
             print("Easiest course: n/a")
             print("Hardest course: n/a")
 
