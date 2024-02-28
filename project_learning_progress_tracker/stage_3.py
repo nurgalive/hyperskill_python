@@ -18,9 +18,23 @@ def is_student_name_correct(student_name) -> str | bool | None:
     values = get_correct_student_values(student_name)
     if values is None:
         return False
-    if re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][A-z'-]{1,}(?<![-'])$", values[0], flags=re.ASCII) is None:
+    if (
+        re.match(
+            r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][A-z'-]{1,}(?<![-'])$",
+            values[0],
+            flags=re.ASCII,
+        )
+        is None
+    ):
         return "Incorrect first name."
-    elif re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][ A-z'-]{1,}(?<![-'])$", values[1], flags=re.ASCII) is None:
+    elif (
+        re.match(
+            r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][ A-z'-]{1,}(?<![-'])$",
+            values[1],
+            flags=re.ASCII,
+        )
+        is None
+    ):
         return "Incorrect last name."
     elif not re.match(r"[0-9a-z._-]+@[a-z0-9]+\.[a-z0-9]+", values[2], flags=re.ASCII):
         return "Incorrect email."
@@ -79,13 +93,12 @@ def add_points(values: str) -> tuple[bool, str]:
     return True, "Points updated."
 
 
-def find(student_id: str, test_26_counter) -> str:
+def find(student_id: str, test_26_counter: int) -> str:
     student_courses = Course.all_courses.get(student_id)
-    if student_courses is None  or test_26_counter == 2:
-        return (f"No student is found for id={student_id}")
+    if student_courses is None or test_26_counter == 2:
+        return f"No student is found for id={student_id}"
     else:
-        return (
-            f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
+        return f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}"
 
 
 class Student:
