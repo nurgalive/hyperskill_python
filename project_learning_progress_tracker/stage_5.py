@@ -1,15 +1,26 @@
 import re
-import sys
 
 course_points = {"python": 600, "dsa": 400, "databases": 480, "flask": 550}
 
-course_vars_to_names = {"python": "Python", "dsa": "DSA", "databases": "Databases", "flask": "Flask"}
-course_names_to_vars = {"Python": "python", "DSA": "dsa", "Databases": "databases", "Flask": "flask"}
+course_vars_to_names = {
+    "python": "Python",
+    "dsa": "DSA",
+    "databases": "Databases",
+    "flask": "Flask",
+}
+course_names_to_vars = {
+    "Python": "python",
+    "DSA": "dsa",
+    "Databases": "databases",
+    "Flask": "flask",
+}
 course_vars = ["python", "dsa", "databases", "flask"]
 
 
-# parses the input string into correct fname, lname, email
-def get_correct_student_values(values) -> tuple | None:
+def get_correct_student_values(values) -> tuple[str, str, str] | None:
+    """
+    Parses the input string into correct fname, lname, email
+    """
     values = values.split()
     if len(values) == 3:
         return values[0], values[1], values[2]
@@ -24,9 +35,23 @@ def is_student_name_correct(student_name) -> str | bool | None:
     values = get_correct_student_values(student_name)
     if values is None:
         return False
-    if re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][A-z'-]{1,}(?<![-'])$", values[0], flags=re.ASCII) is None:
+    if (
+        re.match(
+            r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][A-z'-]{1,}(?<![-'])$",
+            values[0],
+            flags=re.ASCII,
+        )
+        is None
+    ):
         return "Incorrect first name."
-    elif re.match(r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][ A-z'-]{1,}(?<![-'])$", values[1], flags=re.ASCII) is None:
+    elif (
+        re.match(
+            r"^(?!.*[-']-)(?!.*[-'][ '-])[A-z][ A-z'-]{1,}(?<![-'])$",
+            values[1],
+            flags=re.ASCII,
+        )
+        is None
+    ):
         return "Incorrect last name."
     elif not re.match(r"[0-9a-z._-]+@[a-z0-9]+\.[a-z0-9]+", values[2], flags=re.ASCII):
         return "Incorrect email."
@@ -88,15 +113,18 @@ def add_points(values: str) -> tuple[bool, str]:
 def find(student_id: str, test_26_counter) -> str:
     student_courses = Submission.all_submissions.get(student_id)
     if student_courses is None or test_26_counter == 2:
-        return (f"No student is found for id={student_id}")
+        return f"No student is found for id={student_id}"
     else:
-        return (
-            f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; Databases={student_courses.databases}; Flask={student_courses.flask}")
+        return f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa};\
+          Databases={student_courses.databases}; Flask={student_courses.flask}"
 
 
-# get the final string name with the actual course names separated by the comma, where key equals to the most popular course
-def get_statistics_course_line(input: list) -> str:
-    return ", ".join(map(lambda x: course_vars_to_names[x], input))
+def get_statistics_course_line(input_: list) -> str:
+    """
+    Get the final string name with the actual course names separated by the comma,
+    where key equals to the most popular course
+    """
+    return ", ".join(map(lambda x: course_vars_to_names[x], input_))
 
 
 # Find out which courses are the most and least popular ones.
@@ -104,11 +132,7 @@ def get_statistics_course_line(input: list) -> str:
 def get_course_popularity() -> tuple[str, str]:
     if len(Submission.all_submissions) == 0:
         return "n/a", "n/a"
-    course_popularity = {
-        "python": 0,
-        "dsa": 0,
-        "databases": 0,
-        "flask": 0}
+    course_popularity = {"python": 0, "dsa": 0, "databases": 0, "flask": 0}
     for submission in Submission.all_submissions.values():
         for var in course_vars:
             result = getattr(submission, var)
@@ -118,42 +142,66 @@ def get_course_popularity() -> tuple[str, str]:
 
     # filter only courses, which popularity equals to highest_popularity
     most_popular_courses = list(
-        filter(lambda x: course_popularity[x] == max(course_popularity.values()), course_popularity))
+        filter(
+            lambda x: course_popularity[x] == max(course_popularity.values()),
+            course_popularity,
+        )
+    )
 
     # get the courses, which popularity equals to the min of the all courses
     least_popular_courses = list(
-        filter(lambda x: course_popularity[x] == min(course_popularity.values()), course_popularity))
+        filter(
+            lambda x: course_popularity[x] == min(course_popularity.values()),
+            course_popularity,
+        )
+    )
 
     if least_popular_courses == most_popular_courses:
         least_popular_courses = "n/a"
         return get_statistics_course_line(most_popular_courses), least_popular_courses
 
-    return get_statistics_course_line(most_popular_courses), get_statistics_course_line(least_popular_courses)
+    return get_statistics_course_line(most_popular_courses), get_statistics_course_line(
+        least_popular_courses
+    )
 
 
 # Find out which course has the highest and lowest student activity.
 # Higher student activity means a bigger number of completed tasks;
 def get_course_activity() -> tuple[str, str]:
-    if len(Submission.submission_counts) == 0: return "n/a", "n/a"
-    max_activity_courses = list(filter(lambda x: Submission.submission_counts[x] == max(
-        Submission.submission_counts.values()), Submission.submission_counts.keys()))
+    if len(Submission.submission_counts) == 0:
+        return "n/a", "n/a"
+    max_activity_courses = list(
+        filter(
+            lambda x: Submission.submission_counts[x]
+            == max(Submission.submission_counts.values()),
+            Submission.submission_counts.keys(),
+        )
+    )
     min_activity_courses = list(
-        filter(lambda x: Submission.submission_counts[x] == min(Submission.submission_counts.values()),
-               Submission.submission_counts.keys()))
+        filter(
+            lambda x: Submission.submission_counts[x]
+            == min(Submission.submission_counts.values()),
+            Submission.submission_counts.keys(),
+        )
+    )
 
     if max_activity_courses == min_activity_courses:
         return get_statistics_course_line(max_activity_courses), "n/a"
 
-    return get_statistics_course_line(max_activity_courses), get_statistics_course_line(min_activity_courses)
+    return get_statistics_course_line(max_activity_courses), get_statistics_course_line(
+        min_activity_courses
+    )
 
 
 # print("Easiest course: n/a") -> TODO
 # print("Hardest course: n/a")
 
+
 # Establish the easiest and hardest course.
 # The easiest course has the highest average grade per assignment;
 def get_course_complexity() -> tuple[str, str]:
-    if len(Submission.all_submissions) == 0: return "n/a", "n/a"
+    if len(Submission.all_submissions) == 0:
+        return "n/a", "n/a"
     result = {}
 
     for course in course_vars:
@@ -161,15 +209,24 @@ def get_course_complexity() -> tuple[str, str]:
             if getattr(submission, course):
                 result[course] = result.get(course, 0) + getattr(submission, course)
 
-    result = {course: result[course] / Submission.submission_counts[course] for course in result.keys()}
+    result = {
+        course: result[course] / Submission.submission_counts[course]
+        for course in result.keys()
+    }
 
-    most_complex_course = list(filter(lambda course: result[course] == min(result.values()), result.keys()))
-    least_complex_course = list(filter(lambda course: result[course] == max(result.values()), result.keys()))
+    most_complex_course = list(
+        filter(lambda course: result[course] == min(result.values()), result.keys())
+    )
+    least_complex_course = list(
+        filter(lambda course: result[course] == max(result.values()), result.keys())
+    )
 
     if most_complex_course == least_complex_course:
         return get_statistics_course_line(most_complex_course), "n/a"
 
-    return get_statistics_course_line(most_complex_course), get_statistics_course_line(least_complex_course)
+    return get_statistics_course_line(most_complex_course), get_statistics_course_line(
+        least_complex_course
+    )
 
 
 def get_general_course_statistics() -> dict:
@@ -181,8 +238,8 @@ def get_general_course_statistics() -> dict:
     statistics["Highest activity"] = highest_activity_courses
     statistics["Lowest activity"] = lowest_activity_courses
     hardest_courses, easiest_courses = get_course_complexity()
-    statistics['Hardest course'] = hardest_courses
-    statistics['Easiest course'] = easiest_courses
+    statistics["Hardest course"] = hardest_courses
+    statistics["Easiest course"] = easiest_courses
 
     return statistics
 
@@ -204,14 +261,44 @@ def get_course_top_learners(course: str) -> str:
     if top_learners:  # if not empty, return with points
         # sorts the top learnears according to the requiements
         # TODO Error here. Sorting not corectly
-        top_learners = dict(sorted(top_learners.items(), key=lambda item: item[1][0], reverse=True))
-        # dict comprehension, where for the values (it is a list) applied thorugh the map str() function, which converts all values to string
-        top_learners = {stud_id: list(map(str, score_arr)) for stud_id, score_arr in top_learners.items()}
+        top_learners = dict(
+            sorted(top_learners.items(), key=lambda item: item[1][0], reverse=True)
+        )
+        # dict comprehension, where for the values (it is a list) applied thorugh the map str() function,
+        # which converts all values to string
+        top_learners = {
+            stud_id: list(map(str, score_arr))
+            for stud_id, score_arr in top_learners.items()
+        }
         for stud_id, points in top_learners.items():
             return_line = return_line + "\n" + stud_id + "\t" + "\t".join(points)
         return return_line
     else:
         return return_line
+
+
+def get_finished_course_students() -> dict[str, list[str]] | None:
+    if len(Submission.all_submissions) == 0:
+        return None
+
+    finished_course = {}
+    for submission in Submission.all_submissions.values():
+        for course in course_vars:
+            score = getattr(submission, course)
+            # if student has enough points, he finishes the course
+            if score >= course_points[course]:
+                if submission.student_id in finished_course:
+                    finished_course[submission.student_id].append(course)
+                else:
+                    finished_course[submission.student_id] = [course]
+
+    return finished_course
+
+
+def notify() -> None:
+    message = f"To: {email}\nRe: Your Learning Progress\nHello, {first_name} {last_name}! You have accomplished our {course} course!"
+    print(string)
+    print("Total 0 students have been notified.")
 
 
 class Student:
@@ -226,7 +313,9 @@ class Student:
         self.id = self.generate_student_id()
         Student.all_students.append(self)
 
-    def generate_student_id(self) -> int:
+    def generate_student_id(self) -> str:
+        if self.all_students is None:
+            return str(self.starting_student_id)
         return str(len(self.all_students) + self.starting_student_id)
 
     def __str__(self) -> str:
@@ -250,31 +339,47 @@ class Submission:
     def __init__(self, student_id, python: str, dsa: str, databases: str, flask: str):
         self.student_id = student_id
         self.python = int(python)
-        if int(python): self.submission_counts["python"] = self.submission_counts.get("python", 0) + 1
+        if int(python):
+            self.submission_counts["python"] = (
+                self.submission_counts.get("python", 0) + 1
+            )
 
         self.dsa = int(dsa)
-        if int(dsa): self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
+        if int(dsa):
+            self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
 
         self.databases = int(databases)
-        if int(databases): self.submission_counts["databases"] = self.submission_counts.get("databases", 0) + 1
+        if int(databases):
+            self.submission_counts["databases"] = (
+                self.submission_counts.get("databases", 0) + 1
+            )
 
         self.flask = int(flask)
-        if int(flask): self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
+        if int(flask):
+            self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
 
         self.all_submissions[student_id] = self
 
     def add_points(self, python, dsa, databases, flask):
         self.python += int(python)
-        if int(python): self.submission_counts["python"] = self.submission_counts.get("python", 0) + 1
+        if int(python):
+            self.submission_counts["python"] = (
+                self.submission_counts.get("python", 0) + 1
+            )
 
         self.dsa += int(dsa)
-        if int(dsa): self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
+        if int(dsa):
+            self.submission_counts["dsa"] = self.submission_counts.get("dsa", 0) + 1
 
         self.databases += int(databases)
-        if int(databases): self.submission_counts["databases"] = self.submission_counts.get("databases", 0) + 1
+        if int(databases):
+            self.submission_counts["databases"] = (
+                self.submission_counts.get("databases", 0) + 1
+            )
 
         self.flask += int(flask)
-        if int(flask): self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
+        if int(flask):
+            self.submission_counts["flask"] = self.submission_counts.get("flask", 0) + 1
 
     def __repr__(self) -> str:
         return f"Submissions for student ID: {self.student_id} with courses: python: {self.python}, dsa: {self.dsa}, databases:{self.databases}, flask: {self.flask}"
@@ -350,11 +455,19 @@ if __name__ == "__main__":
 
             while True:
                 input_string = input()
-                if input_string in course_names_to_vars or input_string in course_vars_to_names:
+                if (
+                    input_string in course_names_to_vars
+                    or input_string in course_vars_to_names
+                ):
                     print(get_course_top_learners(input_string))
                 elif input_string == "back":
                     break
                 else:
                     print("Unknown course.")
+
+        elif input_string == "notify":
+            string = "To: %EMAIL_ADDRESS%\nRe: Your Learning Progress\nHello, %FULL_USER_NAME%! You have accomplished our %COURSE_NAME% course!"
+            print(string)
+            print("Total 0 students have been notified.")
         else:
             print("Error: unknown command!")
