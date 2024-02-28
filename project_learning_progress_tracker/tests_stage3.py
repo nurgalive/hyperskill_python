@@ -32,6 +32,7 @@ class TestAddPoints(unittest.TestCase):
         self.assertEqual(added, True)
         self.assertEqual(message, "Points updated.")
 
+        
         # adding points to the existing student course
         points = "10000 4 3 2 1"
         added, message = add_points(points)
@@ -58,6 +59,7 @@ class TestAddPoints(unittest.TestCase):
         # print(res)
         self.assertEqual(res, "10000 points: Python=1; DSA=2; Databases=3; Flask=4")
 
+        
     # before executiong each function SetUp method is executed
     # after every function TearDown executed. Tested with print
     # def test_is_id_exists(self):
