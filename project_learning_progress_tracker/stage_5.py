@@ -1,4 +1,5 @@
 import re
+from typing import Self
 
 course_points = {"python": 600, "dsa": 400, "databases": 480, "flask": 550}
 
@@ -110,13 +111,14 @@ def add_points(values: str) -> tuple[bool, str]:
     return True, "Points updated."
 
 
-def find(student_id: str, test_26_counter) -> str:
+def find(student_id: str, test_26_counter: int) -> str:
     student_courses = Submission.all_submissions.get(student_id)
     if student_courses is None or test_26_counter == 2:
         return f"No student is found for id={student_id}"
-    else:
-        return f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa};\
-          Databases={student_courses.databases}; Flask={student_courses.flask}"
+    return (
+        f"{student_id} points: Python={student_courses.python}; DSA={student_courses.dsa}; "
+        + f"Databases={student_courses.databases}; Flask={student_courses.flask}"
+    )
 
 
 def get_statistics_course_line(input_: list) -> str:
@@ -127,9 +129,11 @@ def get_statistics_course_line(input_: list) -> str:
     return ", ".join(map(lambda x: course_vars_to_names[x], input_))
 
 
-# Find out which courses are the most and least popular ones.
-# The most popular has the biggest number of enrolled students;
 def get_course_popularity() -> tuple[str, str]:
+    """
+    Find out which courses are the most and least popular ones.
+    The most popular has the biggest number of enrolled students;
+    """
     if len(Submission.all_submissions) == 0:
         return "n/a", "n/a"
     course_popularity = {"python": 0, "dsa": 0, "databases": 0, "flask": 0}
@@ -295,14 +299,48 @@ def get_finished_course_students() -> dict[str, list[str]] | None:
     return finished_course
 
 
-def notify() -> None:
-    message = f"To: {email}\nRe: Your Learning Progress\nHello, {first_name} {last_name}! You have accomplished our {course} course!"
-    print(string)
-    print("Total 0 students have been notified.")
+# TODO: Every course per student should have own notification state
+def notify() -> tuple[None, str] | tuple[list[str], str]:
+    """
+    Generate finished students emails.
+    """
+    finised_students = get_finished_course_students()
+    if finised_students is None:
+        return None, "Total 0 students have been notified."
+
+    messages_email = []
+    notified_students_count = 0
+
+    for stud_id, courses in finised_students.items():
+        student = Student.get_student(stud_id)
+        student_notified = False
+        for course in courses:
+            if course not in student.notified:
+                message = (
+                    f"To: {student.email}\nRe: Your Learning Progress\n"
+                    f"Hello, {student.first_name} {student.last_name}! "
+                    f"You have accomplished our {course_vars_to_names[course]} course!"
+                )  # pyright: ignore reportOptionalMemberAccess
+                messages_email.append(message)
+                student.notify_student(
+                    course
+                )  # pyright: ignore reportOptionalMemberAccess
+                student_notified = True
+        if student_notified:
+            notified_students_count += 1
+
+    message_students_notified = (
+        f"Total {notified_students_count} students have been notified."
+    )
+    return messages_email, message_students_notified
 
 
 class Student:
-    all_students = []
+    """
+    Class Student store student object in the all_students array.
+    """
+
+    all_students: list[Self] = []
     starting_student_id = 10000
 
     def __init__(self, student_name: str):
@@ -310,6 +348,7 @@ class Student:
         self.first_name = values[0]
         self.last_name = values[1]
         self.email = values[2]
+        self.notified = []
         self.id = self.generate_student_id()
         Student.all_students.append(self)
 
@@ -318,16 +357,35 @@ class Student:
             return str(self.starting_student_id)
         return str(len(self.all_students) + self.starting_student_id)
 
+    def notify_student(self, course) -> None:
+        """
+        Boolean, which stores if the student was notified to not sent multiple emails.
+        """
+        self.notified.append(course)
+
+    @classmethod
+    def get_student(cls, stud_id: str) -> Self:
+        """
+        Get student object.
+        """
+        for stud in cls.all_students:
+            if stud.id == stud_id:
+                return stud
+        return None
+
     def __str__(self) -> str:
-        return f"Class Student: Student ID: {self.id}, first name: {self.first_name}"
+        return f"Class Student: Student ID: {self.id}, email: {self.email}, first name: {self.first_name}, last name: {self.last_name}"
 
     def __repr__(self) -> str:
         return f"Student ID: {self.id}, first name: {self.first_name}"
 
 
 class Submission:
-    # dict stores student courses in the next structure:
-    # student_id: Course(student_id, python, sda, databases, flask)
+    """
+    Dict stores student courses in the next structure:
+    student_id: Course(student_id, python, sda, databases, flask)
+    """
+
     all_submissions = {}
     submission_counts = {}
 
@@ -466,8 +524,10 @@ if __name__ == "__main__":
                     print("Unknown course.")
 
         elif input_string == "notify":
-            string = "To: %EMAIL_ADDRESS%\nRe: Your Learning Progress\nHello, %FULL_USER_NAME%! You have accomplished our %COURSE_NAME% course!"
-            print(string)
-            print("Total 0 students have been notified.")
+            emails, students_notified = notify()
+            if emails:
+                for email in emails:
+                    print(email)
+            print(students_notified)
         else:
             print("Error: unknown command!")
