@@ -33,6 +33,9 @@ def get_correct_student_values(values) -> tuple[str, str, str] | None:
 
 # checks if the student fname, lname and email are correct
 def is_student_name_correct(student_name) -> str | bool | None:
+    """
+    Using regexp, checks if the student name is correct.
+    """
     values = get_correct_student_values(student_name)
     if values is None:
         return False
@@ -64,6 +67,9 @@ def is_student_name_correct(student_name) -> str | bool | None:
 
 # function for the command "list"
 def print_students_list():
+    """
+    Print all students.
+    """
     if len(Student.all_students) > 0:
         print("Students:")
         for student in Student.all_students:
@@ -73,6 +79,9 @@ def print_students_list():
 
 
 def is_email_taken(email: str) -> bool:
+    """
+    Checks that email is available.
+    """
     for student in Student.all_students:
         if email == student.email:
             return True
@@ -80,6 +89,9 @@ def is_email_taken(email: str) -> bool:
 
 
 def is_id_exists(student_id: str) -> bool:
+    """
+    Checks if student_id exists.
+    """
     if len(Student.all_students) > 0:
         for student in Student.all_students:
             if student_id == student.id:
@@ -88,6 +100,9 @@ def is_id_exists(student_id: str) -> bool:
 
 
 def add_points(values: str) -> tuple[bool, str]:
+    """
+    Parse add points line, check if the data is correct and adds points to Submission.
+    """
     values = values.split()
     if len(values) != 5:
         return False, "Incorrect points format"
