@@ -21,13 +21,14 @@ class Maze:
         self.maze = [[1 for x in range(height)] for y in range(width)]
         self.height = height
         self.width = width
-        self.maze_cells = []
+        self.maze_cells = set()
         self.frontier_cells = set()
         self.print_maze()
         starting_point = self.generate_entrance_exit(height)
         # self.maze_cells.append(starting_point)
         self.print_maze()
         self.generate_maze(starting_point)
+        self.print_maze()
 
     def print_maze(self):
         """
@@ -49,18 +50,47 @@ class Maze:
         And the Y (row) is randomly chosen.
         """
         entrance_y = random.choice([i for i in range(1, height - 1)])
-        self.maze[entrance_y][0] = 0
+        # self.maze[entrance_y][0] = 0
         return Cell(0, entrance_y)
-
-    # frontier is
-    # inside the grid
-    # is not part of the maze
 
     def check_frontier(self, cell: Cell):
         pass
 
     def calculate_frontier(self, cell: Cell) -> set:
-        return set()
+        """
+        Frontier cell, is a cell the inside grid in distance 2 from the
+        start cell, not in the maze and not a frontier cell already.
+        """
+        result = set()
+        cell_1 = Cell(cell.x + 2, cell.y)
+        cell_2 = Cell(cell.x - 2, cell.y)
+        cell_3 = Cell(cell.x, cell.y - 2)
+        cell_4 = Cell(cell.x, cell.y + 2)
+        cells_to_check = set([cell_1, cell_2, cell_3, cell_4])
+        # add check, that it is inside the grid
+        for cell_check in cells_to_check:
+            # check that the cell is not goes outside the grid
+            # height - 1 > x > 1 and width - 1 > y > 1
+            if (
+                cell_check.x > self.height - 1
+                or cell_check.x < 1
+                or cell_check.y > self.width - 1
+                or cell_check.y < 1
+            ):
+                print(f"Skipping the cell{cell_check}")
+                continue
+            # check that cell is not already in maze and not in frontier cells
+            print(
+                f"Cell {cell_check} in {self.maze_cells} is {cell_check in self.maze_cells}"
+            )
+            if cell_check in self.maze_cells or cell_check in self.frontier_cells:
+                print(f"Skipping the cell{cell_check}")
+                continue
+            else:
+                print(f"Added cell {cell_check}")
+                result.add(cell_check)
+
+        return result
         # while True:
         #     if
         # return frontier_cells
@@ -69,8 +99,10 @@ class Maze:
         """
         Adds cell to the maze and makes it pass.
         """
-        self.maze[cell.x][cell.y] = 0
-        self.maze_cells.append(cell)
+        self.maze[cell.y][cell.x] = 0
+        self.maze_cells.add(cell)
+
+        self.print_maze()
 
     # def remove_frontier_cell(self, cell_to_remove):
     #     for cell in self.frontier_cells:
@@ -78,15 +110,36 @@ class Maze:
 
     def add_cell_closest_to_frontier(self, frontier_cell: Cell):
         """
-        Check for the neighbour cells and merge the closes
-        find the closest cell and merge with it
+        Check for the neighbors cells and merge the closes
+        find the closest cell and merge with it.
+        # 1. Check for the maze cells in four directions
+
         """
+        cells_to_check = set(
+            [
+                Cell(frontier_cell.x + 2, frontier_cell.y),
+                Cell(frontier_cell.x - 2, frontier_cell.y),
+                Cell(frontier_cell.x, frontier_cell.y + 2),
+                Cell(frontier_cell.x, frontier_cell.y - 2),
+            ]
+        )
+        cells_to_choose = set()
+        for cell in cells_to_check:
+            if cell in self.maze_cells:
+                cells_to_choose.add(cell)
 
-        self.maze_cells
+        cell_to_connect = random.choice(list(cells_to_choose))
 
-        # x                   # y
-        frontier_cell[0] - 1, frontier_cell[1] - 1
-        return []
+        cell_to_add = self.get_middle_cell(frontier_cell, cell_to_connect)
+        self.add_cell_to_maze(cell_to_add)
+
+    def get_middle_cell(self, cell_1: Cell, cell_2: Cell):
+        """
+        Calculate the middle cell between two cells.
+        """
+        middle_x = (cell_1.x + cell_2.x) // 2
+        middle_y = (cell_1.y + cell_2.y) // 2
+        return Cell(x=middle_x, y=middle_y)
 
     def generate_maze(self, starting_point):
         """
@@ -154,4 +207,4 @@ class Maze:
 
 
 if __name__ == "__main__":
-    maze = Maze(4, 4)
+    maze = Maze(6, 6)
