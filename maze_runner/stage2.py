@@ -1,5 +1,5 @@
 """
-Labyrinth generation using Prim's algorithm from the video:
+Maze generation using Prim's algorithm from the video:
 https://www.youtube.com/watch?v=cQVH4gcb3O4
 """
 
@@ -11,23 +11,35 @@ import time
 
 
 class Cell(NamedTuple):
-    x: int
-    y: int
+    """
+    Class for storing the Cell object.
+    """
+
+    x: int  # height
+    y: int  # width
 
 
 class Maze:
+    """
+    Class which creates and stores the maze.
+       __y: width___
+    x:|
+     h|
+     e|
+     i|
+     g|
+     h|
+     t|______________
+    """
+
     def __init__(self, height: int, width: int):
-        # min_size = 4 x 4
         # print(f"Created maze: {height}x{width}")
         self.maze = [[1 for x in range(width)] for y in range(height)]
         self.height = height
         self.width = width
         self.maze_cells = set()
         self.frontier_cells = set()
-        # self.print_maze()
         starting_point = self.generate_entrance(height)
-        # self.maze_cells.append(starting_point)
-        # self.print_maze()
         self.generate_maze(starting_point)
         self.print_maze()
 
@@ -44,22 +56,22 @@ class Maze:
                     print("  ", sep="", end="")
             print("")
         time.sleep(0.01)
-        # print("----------")
+        # print("----------")  # UNCOMMENT HERE FOR NICE VISUALIZATION
 
     def generate_entrance(self, height):
         """
-        Entrance X (column) always equals to 0, since it is the first column.
-        And the Y (row) is randomly chosen.
+        Entrance Y (column) always equals to 0, since it is the first column.
+        And the X (row) is randomly chosen.
         """
-        entrance_y = random.choice([i for i in range(1, height - 1)])
-        return Cell(0, entrance_y)
+        entrance_x = random.choice([i for i in range(1, height - 1)])
+        return Cell(entrance_x, 0)
 
     def add_exit(self):
         """
-        Entrance X (column) always equals to width - 1, since it is the last column.
+        Entrance Y (column) always equals to width - 1, since it is the last column.
         But it can happen, that the between exit and the maze there is wall, which
         also should be added.
-        And the Y (row) is randomly chosen from the existing maze cells in the last column.
+        And the X (row) is randomly chosen from the existing maze cells in the last column.
         """
 
         # search for the maze cells in the last column
@@ -67,14 +79,14 @@ class Maze:
         cell_candidates = []
         while len(cell_candidates) == 0:
             for cell in self.maze_cells:
-                if cell.x == check_column:
+                if cell.y == check_column:
                     cell_candidates.append(cell)
             check_column -= 1
 
         exit_cell = random.choice(cell_candidates)
-        self.add_cell_to_maze(Cell(exit_cell.x + 1, exit_cell.y))
-        if exit_cell.x + 1 < self.width - 1:
-            self.add_cell_to_maze(Cell(exit_cell.x + 2, exit_cell.y))
+        self.add_cell_to_maze(Cell(exit_cell.x, exit_cell.y + 1))
+        if exit_cell.y + 1 < self.width - 1:
+            self.add_cell_to_maze(Cell(exit_cell.x, exit_cell.y + 2))
 
     def calculate_frontier(self, cell: Cell) -> set:
         """
@@ -97,36 +109,23 @@ class Maze:
                 or cell_check.y > self.width - 2
                 or cell_check.y < 1
             ):
-                # print(f"Skipping the cell{cell_check}")
                 continue
-            # check that cell is not already in maze and not in frontier cells
-            # print(
-            #     f"Cell {cell_check} in {self.maze_cells} is {cell_check in self.maze_cells}"
-            # )
+            # checks that the potential frontier cell is not in the maze already
             if cell_check in self.maze_cells or cell_check in self.frontier_cells:
-                # print(f"Skipping the cell{cell_check}")
                 continue
             else:
-                # print(f"Added cell {cell_check}")
                 result.add(cell_check)
 
         return result
-        # while True:
-        #     if
-        # return frontier_cells
 
     def add_cell_to_maze(self, cell: Cell):
         """
         Adds cell to the maze and makes it pass.
         """
-        self.maze[cell.y][cell.x] = 0
+        self.maze[cell.x][cell.y] = 0
         self.maze_cells.add(cell)
 
         # self.print_maze() # UNCOMMENT HERE FOR NICE VISUALIZATION
-
-    # def remove_frontier_cell(self, cell_to_remove):
-    #     for cell in self.frontier_cells:
-    #         if cell == cell_to_remove:
 
     def add_cell_closest_to_frontier(self, frontier_cell: Cell):
         """
@@ -172,18 +171,6 @@ class Maze:
         5. Remove this frontier from the frontier list
         6. Repeat 2 - 5
         """
-
-        # # initializing the algorithm with the entrance (starting point)
-        # # adding frontier cells
-        # self.frontier_cells.update(self.calculate_frontier(starting_point))
-        # # adding the starting point to the maze and making it as a passage
-        # self.add_cell_to_maze(starting_point)
-        # # choosing an arbitrary frontier, which is for the starting point only one
-        # arbitrary_frontier = random.choice(tuple(self.frontier_cells))
-        # # adding a passage between frontier and a closest maze cell
-        # self.add_cell_closest_to_frontier(arbitrary_frontier)
-        # # remove the frontier cell from the frontier cells
-        # self.frontier_cells.remove(arbitrary_frontier)
 
         arbitrary_frontier = starting_point
         self.add_cell_to_maze(arbitrary_frontier)
