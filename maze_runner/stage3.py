@@ -215,7 +215,9 @@ class MazeMenu:
         # 4 - display the maze
 
     def load_maze(self, path):
-        pass
+        with open(path, "rb") as pickled_file:
+            # TODO: Add try check for correct file
+            self.maze = pickle.load(pickled_file)
 
 
 if __name__ == "__main__":
